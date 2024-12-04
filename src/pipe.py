@@ -63,10 +63,11 @@ def save_metadata_to_txt(metadata, file_name):
     print(f"Metadata successfully saved to {file_name}")
 
 def process_article(url,dirpath):
-    article_response = requests.get(url) 
-    print(f"response code {article_response.status_code} for {url}")
+    response = request(url)
+    if response.status_code != 200:
+            return 
 
-    soup = BeautifulSoup(article_response.content, "html.parser")
+    soup = BeautifulSoup(response.content, "html.parser")
 
     script_tag = soup.find("script", class_="aioseo-schema") # get metadata section
     json_data = json.loads(script_tag.string) 
@@ -90,7 +91,9 @@ def process_article(url,dirpath):
                 "articleSection": item.get("articleSection"),
             }
     
-    save_metadata_to_txt(metadata, f"{dirpath}/{metadata["name"]}: { datetime.fromisoformat(metadata["datePublished"]).year.txt}")
+    if datetime.fromisoformat(metadata["datePublished"]).year < 2015:
+        return
+    save_metadata_to_txt(metadata, f"{dirpath}/{metadata["name"]}: { datetime.fromisoformat(metadata["datePublished"]).year}.txt")
     
 def create_output_dir():
     dirpath = Path('output')
@@ -117,6 +120,8 @@ def main():
     for link in all_links:
         time.sleep(3)
         process_article(link,dirpath)
+    
+    print("\nAll articles have been processed.\n")
 
 if __name__ == "__main__":
     main()
