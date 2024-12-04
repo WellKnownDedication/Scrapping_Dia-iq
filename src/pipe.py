@@ -9,13 +9,15 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import json
 
+wait_for_request = 5
+
 def request(url):
     response = requests.get(url)
     print(f"response code {response.status_code} for {url}")
 
     if response.status_code != 200:
         print("unable to log in, waiting...")
-        time.sleep(5)
+        time.sleep(wait_for_request)
         response = requests.get(url)
         print(f"response code {response.status_code} for {url}")
         if response.status_code != 200:
@@ -60,7 +62,7 @@ def save_metadata_to_txt(metadata, file_name):
 
     with open(file_name, "w", encoding="utf-8") as file:
         json.dump(metadata, file, indent=4, ensure_ascii=False)
-    print(f"Metadata successfully saved to {file_name}")
+    print(f"Metadata successfully saved to {file_name}\n")
 
 def process_article(url,dirpath):
     response = request(url)
@@ -111,15 +113,20 @@ def main():
 
     next_page = start_url
     while next_page:
-        time.sleep(3)
+        time.sleep(wait_for_request)
         article_links, next_page = process_main(next_page)
         if article_links != None and next_page!= None:
             all_links.update(article_links)
             print(f"Articles saved: {len(all_links)}")
 
+    time.sleep(10)
     for link in all_links:
-        time.sleep(3)
-        process_article(link,dirpath)
+        time.sleep(wait_for_request)
+        try:
+            process_article(link, dirpath)
+        except Exception as e:
+            print(f"Skipping {link} due to an error: \n{e}")
+            time.sleep(wait_for_request*2)
     
     print("\nAll articles have been processed.\n")
 
