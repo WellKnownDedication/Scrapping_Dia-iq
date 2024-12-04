@@ -74,7 +74,6 @@ def process_article(url,dirpath):
 
     for item in json_data.get("@graph", []):
         if item["@type"] == "BlogPosting":
-            for i in item:
                 metadata = {
                 "@type": item.get("@type"),
                 "@id": item.get("@id"),
@@ -91,9 +90,10 @@ def process_article(url,dirpath):
                 "articleSection": item.get("articleSection"),
             }
     
-    if datetime.fromisoformat(metadata["datePublished"]).year < 2015:
+    if metadata == None or datetime.fromisoformat(metadata["datePublished"]).year < 2015:
         return
     save_metadata_to_txt(metadata, f"{dirpath}/{metadata["name"]}: { datetime.fromisoformat(metadata["datePublished"]).year}.txt")
+    metadata = None
     
 def create_output_dir():
     dirpath = Path('output')
